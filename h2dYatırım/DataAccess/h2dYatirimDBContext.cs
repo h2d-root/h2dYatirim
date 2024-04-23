@@ -10,5 +10,6 @@ namespace h2dYatırım.DataAccess
             optionsBuilder.UseNpgsql(@"Host=193.111.125.93;Port=5432;Database=h2dYatirim;User Id=postgres;Password=753159hH;");
         }
         public DbSet<ShareCertificate> ShareCertificates { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }

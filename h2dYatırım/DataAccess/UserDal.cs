@@ -1,12 +1,13 @@
 ﻿using h2dYatırım.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Net;
 
 namespace h2dYatırım.DataAccess
 {
-    public class ShareCertificateDal
+    public class UserDal
     {
-        public void Add(ShareCertificate entity)
+        public void Add(User entity)
         {
             using (h2dYatirimDBContext context = new h2dYatirimDBContext())
             {
@@ -16,7 +17,7 @@ namespace h2dYatırım.DataAccess
             }
         }
 
-        public void Delete(ShareCertificate entity)
+        public void Delete(User entity)
         {
             using (h2dYatirimDBContext context = new h2dYatirimDBContext())
             {
@@ -26,25 +27,25 @@ namespace h2dYatırım.DataAccess
             }
         }
 
-        public ShareCertificate Get(Expression<Func<ShareCertificate, bool>> filter)
+        public User Get(Expression<Func<User, bool>> filter)
         {
             using (h2dYatirimDBContext context = new h2dYatirimDBContext())
             {
-                return context.Set<ShareCertificate>().SingleOrDefault(filter);
+                return context.Set<User>().SingleOrDefault(filter);
             }
         }
 
-        public List<ShareCertificate> GetAll(Expression<Func<ShareCertificate, bool>> filter = null)
+        public List<User> GetAll(Expression<Func<User, bool>> filter = null)
         {
             using (h2dYatirimDBContext context = new h2dYatirimDBContext())
             {
                 return filter == null
-                    ? context.Set<ShareCertificate>().ToList()
-                    : context.Set<ShareCertificate>().Where(filter).ToList();
+                    ? context.Set<User>().ToList()
+                    : context.Set<User>().Where(filter).ToList();
             }
         }
 
-        public void Update(ShareCertificate entity)
+        public void Update(User entity)
         {
             using (h2dYatirimDBContext context = new h2dYatirimDBContext())
             {

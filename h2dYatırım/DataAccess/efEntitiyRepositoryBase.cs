@@ -1,12 +1,15 @@
-﻿using h2dYatırım.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace h2dYatırım.DataAccess
 {
-    public class ShareCertificateDal
+
+
+
+    public class efEntitiyRepositoryBase<TEntitiy>
+       where TEntitiy : class, new()
     {
-        public void Add(ShareCertificate entity)
+        public void Add(TEntitiy entity)
         {
             using (h2dYatirimDBContext context = new h2dYatirimDBContext())
             {
@@ -16,7 +19,7 @@ namespace h2dYatırım.DataAccess
             }
         }
 
-        public void Delete(ShareCertificate entity)
+        public void Delete(TEntitiy entity)
         {
             using (h2dYatirimDBContext context = new h2dYatirimDBContext())
             {
@@ -26,25 +29,25 @@ namespace h2dYatırım.DataAccess
             }
         }
 
-        public ShareCertificate Get(Expression<Func<ShareCertificate, bool>> filter)
+        public TEntitiy Get(Expression<Func<TEntitiy, bool>> filter)
         {
             using (h2dYatirimDBContext context = new h2dYatirimDBContext())
             {
-                return context.Set<ShareCertificate>().SingleOrDefault(filter);
+                return context.Set<TEntitiy>().SingleOrDefault(filter);
             }
         }
 
-        public List<ShareCertificate> GetAll(Expression<Func<ShareCertificate, bool>> filter = null)
+        public List<TEntitiy> GetAll(Expression<Func<TEntitiy, bool>> filter = null)
         {
             using (h2dYatirimDBContext context = new h2dYatirimDBContext())
             {
                 return filter == null
-                    ? context.Set<ShareCertificate>().ToList()
-                    : context.Set<ShareCertificate>().Where(filter).ToList();
+                    ? context.Set<TEntitiy>().ToList()
+                    : context.Set<TEntitiy>().Where(filter).ToList();
             }
         }
 
-        public void Update(ShareCertificate entity)
+        public void Update(TEntitiy entity)
         {
             using (h2dYatirimDBContext context = new h2dYatirimDBContext())
             {
