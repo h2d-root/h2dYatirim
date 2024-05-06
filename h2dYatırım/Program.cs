@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using h2dYatirim.Application;
+using h2dYatirim.Infrastructure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -6,12 +8,6 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 var securityScheme = new OpenApiSecurityScheme()
 {
     Name = "Authorization",
@@ -37,7 +33,16 @@ var securityReq = new OpenApiSecurityRequirement()
     }
 };
 
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(o =>
+{
+    o.AddSecurityDefinition("Bearer", securityScheme);
+    o.AddSecurityRequirement(securityReq);
+});
+builder.Services.AddSwaggerGen();
 
+// JWT doðrulama ayarlarýný ekleyelim.
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]);
 
@@ -59,10 +64,16 @@ builder.Services.AddAuthentication(opt => {
             ValidIssuer = jwtSettings["Issuer"],
             ValidateAudience = false,
             ValidAudience = jwtSettings["Audience"],
+            // Opsiyonel olarak, Token'ýn ne kadar süreyle geçerli olacaðýný belirleyebilirsiniz:
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero // Bu örnekte token süresinin tam olarak geçerli olmasý beklenir.
         };
     });
+
+builder.Services.ApplicationRegistration();
+builder.Services.InfrastructureRegistration();
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -74,6 +85,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication(); // JWT doðrulama ekleyin.
 app.UseAuthorization();
 
 app.MapControllers();

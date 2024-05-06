@@ -1,68 +1,50 @@
-﻿using h2dYatırım.DataAccess;
-using h2dYatırım.DTOs;
+﻿using h2dYatirim.Application.DTOs;
+using h2dYatirim.Application.Interfaces;
 using h2dYatırım.Entities;
-using h2dYatırım.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 
 namespace h2dYatırım.Controllers
 {
+    [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
-        UserDal _userDal = new UserDal();
         private readonly IConfiguration _configuration;
+        IUserService _userService;
 
-        public UserController(IConfiguration configuration)
+        public UserController(IConfiguration configuration, IUserService userService)
         {
             _configuration = configuration;
+            _userService = userService;
         }
 
-        JwtHelper jwtHelper = new JwtHelper();
 
         [HttpPost("Regiter")]
         public IActionResult Register(User user)
         {
-            try
-            {
-                var result = _userDal.Get(u=>u.IdentificationNumber == user.IdentificationNumber);
-                if (result == null)
+            var result = _userService.Register(user);
+                if (result)
                 {
-                    user.Id = Guid.NewGuid();
-                    _userDal.Add(user);
                     return Ok("Başarılı");
                 }
                 else
                 {
-                    return Ok("Zaten mevcut bir kaydınız var ["+result.FirstName+"]");
+                    return Ok("Zaten mevcut bir kaydınız var");
                 }
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            
         }
         [HttpPost("Login")]
-        public IActionResult Login(LoginDTO user)
+        public IActionResult Login(LoginDto user)
         {
-            var result = _userDal.Get(u=>u.IdentificationNumber == user.IdentificationNumber && u.Password == user.Password);
-            if (result == null)
-            {
-                return Ok("kayıt bulunamadı");
-            }
-            else
-            {
-                var jwtSettings = _configuration.GetSection("JwtSettings");
-                var token = jwtHelper.GenerateJwtToken(result, jwtSettings);
-
-                return Ok(new { Token = token });
-            }
+            string result = _userService.Login(user);
+            return Ok(result);
         }
         [HttpGet("GetAll")]
         public IActionResult GetAll()
         {
-            var result = _userDal.GetAll();
+            var result = _userService.GetAll();
             return Ok(result);
         }
     }
