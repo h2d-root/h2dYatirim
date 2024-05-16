@@ -4,11 +4,11 @@ using h2dYatırım.Entities;
 
 namespace h2dYatirim.Application.Interfaces
 {
-    public interface IPortfolioService
+    public interface IWalletService
     {
         IDataResult<bool> Buying(Guid id, BuyingSellingDTO dto);
         IDataResult<bool> Selling(Guid id, BuyingSellingDTO dto);
-        IDataResult<List<Portfolio>> GetPortfolio(Guid id);
-        IDataResult<List<Portfolio>> Refresh(Guid id);
+        IDataResult<List<Wallet>> GetWallet(Guid id);
+        IDataResult<List<Wallet>> Refresh(Guid id);
     }
 }

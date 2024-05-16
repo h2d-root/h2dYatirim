@@ -1,4 +1,5 @@
-﻿using h2dYatirim.Application.Interfaces;
+﻿using Core.Utilities.Results;
+using h2dYatirim.Application.Interfaces;
 using h2dYatırım.Entities;
 using h2dYatirim.Infrastructure.Entities;
 
@@ -13,7 +14,7 @@ namespace h2dYatirim.Application.Classes
             _accountDal = accountDal;
         }
 
-        public bool AddAccount(Guid id)
+        public IDataResult<bool> AddAccount(Guid id)
         {
             var result = _accountDal.Get(c => c.UserId == id);
             if (result == null)
@@ -21,66 +22,66 @@ namespace h2dYatirim.Application.Classes
                 var account = new CryptoAccount() { UserId = id, AmountInAccount = 0 };
                 _accountDal.Add(account);
                 var newAccount = _accountDal.Get(u => u.UserId == id);
-                return true;
+                return new SuccessDataResult<bool>(true);
             }
             else
             {
-                return false;
+                return new ErrorDataResult<bool>(false);
             }
         }
 
-        public bool DepositMoney(Guid userId, decimal balance)
+        public IDataResult<bool> DepositMoney(Guid userId, decimal balance)
         {
             var result = _accountDal.Get(a => a.UserId == userId);
             if (result != null)
             {
                 result.AmountInAccount += Convert.ToDecimal(balance);
                 _accountDal.Update(result);
-                return true;
+                return new SuccessDataResult<bool>(true);
             }
             else
             {
-                return false;
+                return new ErrorDataResult<bool>(false);
             }
         }
 
-        public CryptoAccount GetAccount(Guid userId)
+        public IDataResult<CryptoAccount> GetAccount(Guid userId)
         {
             var result = _accountDal.Get(c => c.UserId == userId);
             if (result != null)
             {
-                return result;
+                return new SuccessDataResult<CryptoAccount>(result);
             }
             else
             {
-                return new CryptoAccount();
+                return new ErrorDataResult<CryptoAccount>(new CryptoAccount());
             }
         }
 
-        public bool RemoveAccount()
+        public IDataResult<bool> RemoveAccount()
         {
             throw new NotImplementedException();
         }
 
-        public bool WithdrawMoney(Guid userId, decimal balance)
+        public IDataResult<bool> WithdrawMoney(Guid userId, decimal balance)
         {
             var result = _accountDal.Get(a => a.UserId == userId);
             if (result != null)
             {
                 if (result.AmountInAccount >= balance)
                 {
-                    result.AmountInAccount -= Convert.ToDecimal(balance);
+                    result.AmountInAccount -= balance;
                     _accountDal.Update(result);
-                    return true;
+                    return new SuccessDataResult<bool>(true);
                 }
                 else
                 {
-                    return false;
+                    return new ErrorDataResult<bool>(false);
                 }
             }
             else
             {
-                return false;
+                return new ErrorDataResult<bool>(false);
             }
         }
     }

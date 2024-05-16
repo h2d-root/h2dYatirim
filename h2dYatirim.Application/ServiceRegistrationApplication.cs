@@ -13,6 +13,7 @@ namespace h2dYatirim.Application
             services.AddScoped<IPortfolioService, PortfolioManager>();
             services.AddScoped<ICryptoAccountService, CryptoAccountManager>();
             services.AddScoped<IAccountMovementService, AccountMovementManager>();
+            services.AddScoped<IWalletService, WalletManager>();
             return services;
         }
     }

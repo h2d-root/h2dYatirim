@@ -1,4 +1,5 @@
-﻿using h2dYatirim.Application.Interfaces;
+﻿using Core.Utilities.Results;
+using h2dYatirim.Application.Interfaces;
 using h2dYatırım.Entities;
 using h2dYatirim.Infrastructure.Entities;
 
@@ -12,11 +13,9 @@ namespace h2dYatirim.Application.Classes
         {
             _accountMovementDal = accountMovementDal;
         }
-
-        public List<AccountMovement> GetAccountMovement(Guid id)
+        public IDataResult<List<AccountMovement>> GetAccountMovement(Guid userId)
         {
-            var result = _accountMovementDal.GetAll(u=>u.UserId == id);
-            return result;
+            return new SuccessDataResult<List<AccountMovement>>(_accountMovementDal.GetAll(u => u.UserId == userId));
         }
     }
 }

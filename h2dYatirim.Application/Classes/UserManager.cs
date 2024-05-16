@@ -4,6 +4,7 @@ using h2dYatirim.Infrastructure.Entities;
 using h2dYatirim.Infrastructure.Services;
 using h2dYatırım.Entities;
 using Microsoft.Extensions.Configuration;
+using Core.Utilities.Results;
 
 namespace h2dYatirim.Application.Classes
 {
@@ -14,51 +15,50 @@ namespace h2dYatirim.Application.Classes
 
         IUserDal _userDal;
 
-        public UserManager(IUserDal userDal, IConfiguration configuration = null)
+        public UserManager(IUserDal userDal, IConfiguration configuration)
         {
             _userDal = userDal;
             _configuration = configuration;
         }
 
-        public List<User> GetAll()
+        public IDataResult<List<User>> GetAll()
         {
             var result = _userDal.GetAll();
-            return result;
+            return new SuccessDataResult<List<User>>(result);
         }
 
-        public User GetById(Guid id)
+        public IDataResult<User> GetById(Guid id)
         {
             var result = _userDal.Get(u=>u.Id == id);
-            return result;
+            return new SuccessDataResult<User>(result);
         }
 
-        public string Login(LoginDto dto)
+        public IDataResult<string> Login(LoginDto dto)
         {
             var result = _userDal.Get(u => u.IdentificationNumber == dto.IdentificationNumber && u.Password == dto.Password);
             if (result == null)
             {
-                return "kayıt bulunamadı";
+                return new ErrorDataResult<string>("kayıt bulunamadı");
             }
             else
             {
                 var jwtSettings = _configuration.GetSection("JwtSettings");
                 var token = JwtHelper.GenerateJwtToken(result, jwtSettings);
-                var tOken = new { Token = token };
-                return token;
+                return new SuccessDataResult<string>(token,"token başarılı bir şekilde oluşturuldu");
             }
         }
 
-        public bool Register(User user)
+        public IDataResult<bool> Register(User user)
         {
             var result = _userDal.Get(u=>u.IdentificationNumber == user.IdentificationNumber);
             if (result == null)
             {
                 _userDal.Add(user);
-                return true;
+                return new SuccessDataResult<bool>(true,"başarılı bir şekilde kayıt oldunuz");
             }
             else
             {
-                return false;
+                return new ErrorDataResult<bool>(false, "Zaten böyle bir kayıt var.");
             }
         }
     }

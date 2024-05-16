@@ -25,7 +25,7 @@ namespace h2dYatırım.Controllers
         public IActionResult Register(User user)
         {
             var result = _userService.Register(user);
-                if (result)
+                if (result.Data)
                 {
                     return Ok("Başarılı");
                 }
@@ -38,7 +38,9 @@ namespace h2dYatırım.Controllers
         [HttpPost("Login")]
         public IActionResult Login(LoginDto user)
         {
-            string result = _userService.Login(user);
+            var result = _userService.Login(user);
+            var dfgf = result.Data +" + "+ result.Message;
+            Console.WriteLine(dfgf);
             return Ok(result);
         }
         [HttpGet("GetAll")]

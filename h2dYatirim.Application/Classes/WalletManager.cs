@@ -7,17 +7,17 @@ using h2dYatırım.Services;
 
 namespace h2dYatirim.Application.Classes
 {
-    public class PortfolioManager : IPortfolioService
+    public class WalletManager : IWalletService
     {
-        IPortfolioDal _portfolioDal;
+        IWalletDal _walletDal;
         IAccountMovementDal _accountMovementDal;
         ICryptoAccountDal _cryptoAccountDal;
 
-        public PortfolioManager(ICryptoAccountDal cryptoAccountDal, IAccountMovementDal accountMovementDal, IPortfolioDal portfolioDal)
+        public WalletManager(ICryptoAccountDal cryptoAccountDal, IAccountMovementDal accountMovementDal, IWalletDal walletDal)
         {
             _cryptoAccountDal = cryptoAccountDal;
             _accountMovementDal = accountMovementDal;
-            _portfolioDal = portfolioDal;
+            _walletDal = walletDal;
         }
 
         public IDataResult<bool> Buying(Guid id, BuyingSellingDTO dto)
@@ -30,19 +30,19 @@ namespace h2dYatirim.Application.Classes
                 decimal value = Convert.ToDecimal(dto.Amount) * coinPrice;
                 if (account.AmountInAccount >= value)
                 {
-                    Portfolio portfolio;
-                    var cryptoPortfolio = _portfolioDal.Get(c => c.CryptoId == dto.ShareorCryptoId);
-                    if (cryptoPortfolio != null)
+                    Wallet Wallet;
+                    var cryptoWallet = _walletDal.Get(c => c.CryptoId == dto.ShareorCryptoId);
+                    if (cryptoWallet != null)
                     {
-                        cryptoPortfolio.Amount += dto.Amount;
-                        cryptoPortfolio.CurrentValue += value;
-                        cryptoPortfolio.ReceivedValue += value;
-                        _portfolioDal.Update(cryptoPortfolio);
-                        portfolio = cryptoPortfolio;
+                        cryptoWallet.Amount += dto.Amount;
+                        cryptoWallet.CurrentValue += value;
+                        cryptoWallet.ReceivedValue += value;
+                        _walletDal.Update(cryptoWallet);
+                        Wallet = cryptoWallet;
                     }
                     else
                     {
-                        Portfolio newPortfolio = new Portfolio()
+                        Wallet newWallet = new Wallet()
                         {
                             CryptoAccountId = account.Id,
                             UserId = id,
@@ -52,17 +52,17 @@ namespace h2dYatirim.Application.Classes
                             CurrentValue = value,
                             ReceivedValue = value
                         };
-                        _portfolioDal.Add(newPortfolio);
-                        portfolio = newPortfolio;
+                        _walletDal.Add(newWallet);
+                        Wallet = newWallet;
                     }
-                    var portfolios = _portfolioDal.GetAll(u => u.UserId == id);
-                    decimal portfolioTotalValue = 0;
-                    foreach (var item in portfolios)
+                    var Wallets = _walletDal.GetAll(u => u.UserId == id);
+                    decimal WalletTotalValue = 0;
+                    foreach (var item in Wallets)
                     {
-                        portfolioTotalValue += item.CurrentValue;
+                        WalletTotalValue += item.CurrentValue;
                     }
                     account.AmountInAccount -= value;
-                    account.WalletValue = portfolioTotalValue;
+                    account.WalletValue = WalletTotalValue;
                     _cryptoAccountDal.Update(account);
                     AccountMovement movement = new AccountMovement()
                     {
@@ -86,10 +86,10 @@ namespace h2dYatirim.Application.Classes
             }
         }
 
-        public IDataResult<List<Portfolio>> GetPortfolio(Guid id)
+        public IDataResult<List<Wallet>> GetWallet(Guid id)
         {
-            decimal totalPortfolioValue = 0;
-            var result = _portfolioDal.GetAll(u => u.UserId == id);
+            decimal totalWalletValue = 0;
+            var result = _walletDal.GetAll(u => u.UserId == id);
             foreach (var item in result)
             {
                 var crypto = CoinService.ServiceGetAsync(item.CryptoId);
@@ -101,33 +101,33 @@ namespace h2dYatirim.Application.Classes
                 decimal yuzdeFark = (fark / received) * 100;
                 item.ValueChange = yuzdeFark;
 
-                totalPortfolioValue += item.CurrentValue;
+                totalWalletValue += item.CurrentValue;
 
-                _portfolioDal.Update(item);
+                _walletDal.Update(item);
             }
             var account = _cryptoAccountDal.Get(u => u.UserId == id);
-            account.WalletValue = totalPortfolioValue;
+            account.WalletValue = totalWalletValue;
             _cryptoAccountDal.Update(account);
-            var portfolios = _portfolioDal.GetAll(u => u.UserId == id);
-            return new SuccessDataResult<List<Portfolio>>(portfolios);
+            var Wallets = _walletDal.GetAll(u => u.UserId == id);
+            return new SuccessDataResult<List<Wallet>>(Wallets);
         }
 
-        public IDataResult<List<Portfolio>> Refresh(Guid id)
+        public IDataResult<List<Wallet>> Refresh(Guid id)
         {
             throw new NotImplementedException();
         }
 
         public IDataResult<bool> Selling(Guid id, BuyingSellingDTO dto)
         {
-            var portfolio = _portfolioDal.Get(u => u.UserId == id && u.CryptoId == dto.ShareorCryptoId);
+            var Wallet = _walletDal.Get(u => u.UserId == id && u.CryptoId == dto.ShareorCryptoId);
             var account = _cryptoAccountDal.Get(u => u.UserId == id);
             var crypto = CoinService.ServiceGetAsync(dto.ShareorCryptoId);
             decimal coinPrice = Convert.ToDecimal(crypto.Result.PriceUsd);
             if (account != null)
             {
-                if (portfolio != null)
+                if (Wallet != null)
                 {
-                    if (portfolio.Amount >= dto.Amount)
+                    if (Wallet.Amount >= dto.Amount)
                     {
                         decimal value = Convert.ToDecimal(dto.Amount) * coinPrice;
                         account.WalletValue -= value;
@@ -140,17 +140,17 @@ namespace h2dYatirim.Application.Classes
                             TransactionType = "Satış",
                             Value = value
                         };
-                        if (portfolio.Amount > dto.Amount)
+                        if (Wallet.Amount > dto.Amount)
                         {
-                            portfolio.CurrentValue -= value;
-                            decimal ortalama = portfolio.ReceivedValue / Convert.ToDecimal(portfolio.Amount);
-                            portfolio.ReceivedValue -= ortalama * Convert.ToDecimal(dto.Amount);
-                            portfolio.Amount -= dto.Amount;
-                            _portfolioDal.Update(portfolio);
+                            Wallet.CurrentValue -= value;
+                            decimal ortalama = Wallet.ReceivedValue / Convert.ToDecimal(Wallet.Amount);
+                            Wallet.ReceivedValue -= ortalama * Convert.ToDecimal(dto.Amount);
+                            Wallet.Amount -= dto.Amount;
+                            _walletDal.Update(Wallet);
                         }
-                        else if (portfolio.Amount == dto.Amount)
+                        else if (Wallet.Amount == dto.Amount)
                         {
-                            _portfolioDal.Delete(portfolio);
+                            _walletDal.Delete(Wallet);
                         }
                         _cryptoAccountDal.Update(account);
                         _accountMovementDal.Add(movement);

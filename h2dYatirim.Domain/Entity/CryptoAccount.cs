@@ -7,6 +7,6 @@ namespace h2dYatırım.Entities
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
         public decimal AmountInAccount { get; set; }
-        public decimal ProtfolioValue { get; set; }
+        public decimal WalletValue { get; set; }
     }
 }
