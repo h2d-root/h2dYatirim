@@ -12,8 +12,8 @@ using h2dYatırım.DataAccess;
 namespace h2dYatirim.Infrastructure.Migrations
 {
     [DbContext(typeof(h2dYatirimDBContext))]
-    [Migration("20240516202257_mig1")]
-    partial class mig1
+    [Migration("20240516212918_mig")]
+    partial class mig
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,6 +48,10 @@ namespace h2dYatirim.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CryptoAccountId");
+
+                    b.HasIndex("InvestmentAccountId");
+
                     b.ToTable("Accounts");
                 });
 
@@ -55,9 +59,6 @@ namespace h2dYatirim.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AccountId")
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("PortfolioValue")
@@ -103,9 +104,6 @@ namespace h2dYatirim.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AccountId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("UserId")
@@ -218,6 +216,21 @@ namespace h2dYatirim.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Wallets");
+                });
+
+            modelBuilder.Entity("h2dYatirim.Domain.Entity.Account", b =>
+                {
+                    b.HasOne("h2dYatırım.Entities.CryptoAccount", "CryptoAccount")
+                        .WithMany()
+                        .HasForeignKey("CryptoAccountId");
+
+                    b.HasOne("h2dYatirim.Domain.Entity.InvestmentAccount", "InvestmentAccount")
+                        .WithMany()
+                        .HasForeignKey("InvestmentAccountId");
+
+                    b.Navigation("CryptoAccount");
+
+                    b.Navigation("InvestmentAccount");
                 });
 #pragma warning restore 612, 618
         }

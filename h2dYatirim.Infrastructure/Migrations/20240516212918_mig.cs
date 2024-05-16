@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace h2dYatirim.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class mig1 : Migration
+    public partial class mig : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -28,28 +28,11 @@ namespace h2dYatirim.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Accounts",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CryptoAccountId = table.Column<Guid>(type: "uuid", nullable: true),
-                    InvestmentAccountId = table.Column<Guid>(type: "uuid", nullable: true),
-                    AmountInAccount = table.Column<decimal>(type: "numeric", nullable: false),
-                    AssetValue = table.Column<decimal>(type: "numeric", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Accounts", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "CryptoAccounts",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
                     WalletValue = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
@@ -63,7 +46,6 @@ namespace h2dYatirim.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
                     PortfolioValue = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
@@ -123,6 +105,42 @@ namespace h2dYatirim.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Wallets", x => x.Id);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "Accounts",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CryptoAccountId = table.Column<Guid>(type: "uuid", nullable: true),
+                    InvestmentAccountId = table.Column<Guid>(type: "uuid", nullable: true),
+                    AmountInAccount = table.Column<decimal>(type: "numeric", nullable: false),
+                    AssetValue = table.Column<decimal>(type: "numeric", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Accounts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Accounts_CryptoAccounts_CryptoAccountId",
+                        column: x => x.CryptoAccountId,
+                        principalTable: "CryptoAccounts",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Accounts_InvestmentAccounts_InvestmentAccountId",
+                        column: x => x.InvestmentAccountId,
+                        principalTable: "InvestmentAccounts",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Accounts_CryptoAccountId",
+                table: "Accounts",
+                column: "CryptoAccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Accounts_InvestmentAccountId",
+                table: "Accounts",
+                column: "InvestmentAccountId");
         }
 
         /// <inheritdoc />
@@ -135,12 +153,6 @@ namespace h2dYatirim.Infrastructure.Migrations
                 name: "Accounts");
 
             migrationBuilder.DropTable(
-                name: "CryptoAccounts");
-
-            migrationBuilder.DropTable(
-                name: "InvestmentAccounts");
-
-            migrationBuilder.DropTable(
                 name: "Portfolios");
 
             migrationBuilder.DropTable(
@@ -148,6 +160,12 @@ namespace h2dYatirim.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Wallets");
+
+            migrationBuilder.DropTable(
+                name: "CryptoAccounts");
+
+            migrationBuilder.DropTable(
+                name: "InvestmentAccounts");
         }
     }
 }

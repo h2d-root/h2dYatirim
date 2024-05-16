@@ -25,11 +25,9 @@ namespace h2dYatirim.Application.Classes
                 var result = cryptoAccountDal.Get(c => c.UserId == id);
                 if (result == null)
                 {
-                    var cryptoAccount = new CryptoAccount() { UserId = id, AccountId = account.Id };
+                    var cryptoAccount = new CryptoAccount() { UserId = id};
                     cryptoAccountDal.Add(cryptoAccount);
                     var newAccount = cryptoAccountDal.Get(u => u.UserId == id);
-                    account.CryptoAccountId = newAccount.Id;
-                    accountDal.Update(account);
                     return new SuccessDataResult<bool>(true);
                 }
                 else

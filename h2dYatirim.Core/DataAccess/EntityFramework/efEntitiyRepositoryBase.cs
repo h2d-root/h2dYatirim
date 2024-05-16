@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Core.DataAccess.EntityFramework
 {
@@ -33,21 +34,44 @@ namespace Core.DataAccess.EntityFramework
             }
         }
 
-        public TEntitiy Get(Expression<Func<TEntitiy, bool>> filter)
+        public TEntitiy Get(Expression<Func<TEntitiy, bool>> filter, string? includes = null)
         {
             using (TContext context = new TContext())
             {
-                return context.Set<TEntitiy>().SingleOrDefault(filter);
+                var query = context.Set<TEntitiy>().AsQueryable();
+
+                
+                if (!string.IsNullOrEmpty(includes))
+                {
+                    var includeList = includes.Split(',').Select(include => include.Trim());
+                    foreach (var include in includeList)
+                    {
+                        query = query.Include(include);
+                    }
+                }
+
+                return query.SingleOrDefault(filter);
             }
         }
 
-        public List<TEntitiy> GetAll(Expression<Func<TEntitiy, bool>> filter = null)
+        public List<TEntitiy> GetAll(Expression<Func<TEntitiy, bool>> filter = null, string? includes = null)
         {
             using (TContext context = new TContext())
             {
-                return filter == null
-                    ? context.Set<TEntitiy>().ToList()
-                    : context.Set<TEntitiy>().Where(filter).ToList();
+                var query = filter == null
+                ? context.Set<TEntitiy>().AsQueryable()
+                : context.Set<TEntitiy>().Where(filter);
+
+                if (!string.IsNullOrEmpty(includes))
+                {
+                    var includeList = includes.Split(',').Select(include => include.Trim());
+                    foreach (var include in includeList)
+                    {
+                        query = query.Include(include);
+                    }
+                }
+
+                return query.ToList();
             }
         }
 

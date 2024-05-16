@@ -25,11 +25,9 @@ namespace h2dYatirim.Application.Classes
                 var result = _investmentAccountDal.Get(c => c.UserId == id);
                 if (result == null)
                 {
-                    var investmentAccount = new InvestmentAccount() { UserId = id, AccountId = account.Id };
+                    var investmentAccount = new InvestmentAccount() { UserId = id};
                     _investmentAccountDal.Add(investmentAccount);
                     var newAccount = _investmentAccountDal.Get(u => u.UserId == id);
-                    account.InvestmentAccountId = newAccount.Id;
-                    _accountDal.Update(account);
                     return new SuccessDataResult<bool>(true);
                 }
                 else

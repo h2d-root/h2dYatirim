@@ -51,7 +51,7 @@ namespace h2dYatirim.Application.Classes
 
         public IDataResult<Account> GetAccount(Guid userId)
         {
-            var result = _accountDal.Get(c => c.UserId == userId);
+            var result = _accountDal.Get(c => c.UserId == userId, includes: "CryptoAccount, InvestmentAccount");
             if (result != null)
             {
                 var crypto = _cryptoAccountDal.Get(u=>u.UserId == userId);
