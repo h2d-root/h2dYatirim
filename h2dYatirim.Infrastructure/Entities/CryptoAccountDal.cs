@@ -5,4 +5,5 @@ using h2dYatırım.Entities;
 namespace h2dYatirim.Infrastructure.Entities
 {
     public class CryptoAccountDal : efEntitiyRepositoryBase<CryptoAccount, h2dYatirimDBContext>, ICryptoAccountDal { }
+
 }

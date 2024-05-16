@@ -7,47 +7,46 @@ namespace h2dYatirim.Application.Classes
 {
     public class CryptoAccountManager : ICryptoAccountService
     {
-        ICryptoAccountDal _accountDal;
+        ICryptoAccountDal cryptoAccountDal;
+        IAccountDal accountDal;
 
-        public CryptoAccountManager(ICryptoAccountDal accountDal)
+        public CryptoAccountManager(ICryptoAccountDal cryptoAccountDal, IAccountDal accountDal)
         {
-            _accountDal = accountDal;
+            this.cryptoAccountDal = cryptoAccountDal;
+            this.accountDal = accountDal;
         }
 
         public IDataResult<bool> AddAccount(Guid id)
         {
-            var result = _accountDal.Get(c => c.UserId == id);
-            if (result == null)
+            var account = accountDal.Get(u=>u.UserId == id);
+            
+            if (account != null)
             {
-                var account = new CryptoAccount() { UserId = id, AmountInAccount = 0 };
-                _accountDal.Add(account);
-                var newAccount = _accountDal.Get(u => u.UserId == id);
-                return new SuccessDataResult<bool>(true);
+                var result = cryptoAccountDal.Get(c => c.UserId == id);
+                if (result == null)
+                {
+                    var cryptoAccount = new CryptoAccount() { UserId = id, AccountId = account.Id };
+                    cryptoAccountDal.Add(cryptoAccount);
+                    var newAccount = cryptoAccountDal.Get(u => u.UserId == id);
+                    return new SuccessDataResult<bool>(true);
+                }
+                else
+                {
+                    return new ErrorDataResult<bool>(false,"Zaten hesabınız var");
+                }
             }
             else
             {
-                return new ErrorDataResult<bool>(false);
+                return new ErrorDataResult<bool>(false, "ilk önce hesap oluşturmanız gerekmektedir");
             }
+
+
         }
 
-        public IDataResult<bool> DepositMoney(Guid userId, decimal balance)
-        {
-            var result = _accountDal.Get(a => a.UserId == userId);
-            if (result != null)
-            {
-                result.AmountInAccount += Convert.ToDecimal(balance);
-                _accountDal.Update(result);
-                return new SuccessDataResult<bool>(true);
-            }
-            else
-            {
-                return new ErrorDataResult<bool>(false);
-            }
-        }
-
+        
         public IDataResult<CryptoAccount> GetAccount(Guid userId)
         {
-            var result = _accountDal.Get(c => c.UserId == userId);
+            var result = cryptoAccountDal.Get(c => c.UserId == userId);
             if (result != null)
             {
                 return new SuccessDataResult<CryptoAccount>(result);
@@ -63,26 +62,5 @@ namespace h2dYatirim.Application.Classes
             throw new NotImplementedException();
         }
 
-        public IDataResult<bool> WithdrawMoney(Guid userId, decimal balance)
-        {
-            var result = _accountDal.Get(a => a.UserId == userId);
-            if (result != null)
-            {
-                if (result.AmountInAccount >= balance)
-                {
-                    result.AmountInAccount -= balance;
-                    _accountDal.Update(result);
-                    return new SuccessDataResult<bool>(true);
-                }
-                else
-                {
-                    return new ErrorDataResult<bool>(false);
-                }
-            }
-            else
-            {
-                return new ErrorDataResult<bool>(false);
-            }
-        }
     }
 }

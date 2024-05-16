@@ -10,5 +10,7 @@ namespace h2dYatirim.Application.Interfaces
         IDataResult<bool> Selling(Guid id, BuyingSellingDTO dto);
         IDataResult<List<Wallet>> GetWallet(Guid id);
         IDataResult<List<Wallet>> Refresh(Guid id);
+        decimal Value(Guid id);
+
     }
 }

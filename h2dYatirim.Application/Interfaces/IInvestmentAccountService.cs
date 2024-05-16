@@ -1,12 +1,13 @@
 ﻿using Core.Utilities.Results;
-using h2dYatırım.Entities;
+using h2dYatirim.Domain.Entity;
 
 namespace h2dYatirim.Application.Interfaces
 {
-    public interface ICryptoAccountService
+    public interface IInvestmentAccountService
     {
         IDataResult<bool> AddAccount(Guid id);
         IDataResult<bool> RemoveAccount();
-        IDataResult<CryptoAccount> GetAccount(Guid userId);
+        IDataResult<InvestmentAccount> GetAccount(Guid userId);
     }
+
 }

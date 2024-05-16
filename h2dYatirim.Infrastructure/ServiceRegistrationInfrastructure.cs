@@ -12,7 +12,9 @@ namespace h2dYatirim.Infrastructure
             services.AddScoped<IPortfolioDal, PortfolioDal>();
             services.AddScoped<IAccountMovementDal, AccountMovementDal>();
             services.AddScoped<ICryptoAccountDal, CryptoAccountDal>();
+            services.AddScoped<IInvestmentAccountDal, InvestmentAccountDal>();
             services.AddScoped<IWalletDal, WalletDal>();
+            services.AddScoped<IAccountDal, AccountDal>();
 
             return services;
         }

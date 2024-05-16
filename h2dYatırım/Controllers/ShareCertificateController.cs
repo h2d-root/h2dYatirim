@@ -13,7 +13,13 @@ namespace h2dYatırım.API.Controllers
         [HttpGet("GetAll")]
         public async Task<IActionResult> GetAllAsync()
         {
-            var result = await ShareService.GetStockDataAsync();
+            var result = await ShareService.GetShareCertificateAsync();
+            return Ok(result);
+        }
+        [HttpGet("GetById")]
+        public async Task<IActionResult> GetByIdAsync(string id)
+        {
+            var result = await ShareService.ServiceGetAsync(id);
             return Ok(result);
         }
     }

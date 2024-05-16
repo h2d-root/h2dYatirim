@@ -11,7 +11,7 @@ namespace h2dYatirim.Domain.Entity
     {
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
-        public decimal AmountInAccount { get; set; }
-        public decimal ProtfolioValue { get; set; }
+        public Guid AccountId { get; set; }
+        public decimal PortfolioValue { get; set; }
     }
 }

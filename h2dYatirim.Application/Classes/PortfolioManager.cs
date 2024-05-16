@@ -3,6 +3,7 @@ using h2dYatirim.Application.DTOs;
 using h2dYatirim.Application.Interfaces;
 using h2dYatırım.Entities;
 using h2dYatirim.Infrastructure.Entities;
+using h2dYatirim.Infrastructure.Services;
 using h2dYatırım.Services;
 
 namespace h2dYatirim.Application.Classes
@@ -11,27 +12,29 @@ namespace h2dYatirim.Application.Classes
     {
         IPortfolioDal _portfolioDal;
         IAccountMovementDal _accountMovementDal;
-        ICryptoAccountDal _cryptoAccountDal;
+        IInvestmentAccountDal _investmentAccountDal;
+        IAccountDal _accountDal;
 
-        public PortfolioManager(ICryptoAccountDal cryptoAccountDal, IAccountMovementDal accountMovementDal, IPortfolioDal portfolioDal)
+        public PortfolioManager(IAccountMovementDal accountMovementDal, IAccountDal accountDal, IPortfolioDal portfolioDal, IInvestmentAccountDal investmentAccountDal)
         {
-            _cryptoAccountDal = cryptoAccountDal;
             _accountMovementDal = accountMovementDal;
             _portfolioDal = portfolioDal;
+            _investmentAccountDal = investmentAccountDal;
+            _accountDal = accountDal;
         }
 
         public IDataResult<bool> Buying(Guid id, BuyingSellingDTO dto)
         {
-            var account = _cryptoAccountDal.Get(u => u.UserId == id);
+            var account = _accountDal.Get(u => u.UserId == id);
+            var investmentAccount = _investmentAccountDal.Get(u=>u.UserId == id);
             if (account != null)
             {
-                var coin = CoinService.ServiceGetAsync(dto.ShareorCryptoId);
-                var coinPrice = Convert.ToDecimal(coin.Result.PriceUsd);
-                decimal value = Convert.ToDecimal(dto.Amount) * coinPrice;
+                var share = ShareService.ServiceGetAsync(dto.ShareorCryptoId);
+                decimal value = Convert.ToDecimal(dto.Amount) * share.Result.Price;
                 if (account.AmountInAccount >= value)
                 {
                     Portfolio portfolio;
-                    var cryptoPortfolio = _portfolioDal.Get(c => c.CryptoId == dto.ShareorCryptoId);
+                    var cryptoPortfolio = _portfolioDal.Get(c => c.ShareCertificateId == dto.ShareorCryptoId);
                     if (cryptoPortfolio != null)
                     {
                         cryptoPortfolio.Amount += dto.Amount;
@@ -44,9 +47,9 @@ namespace h2dYatirim.Application.Classes
                     {
                         Portfolio newPortfolio = new Portfolio()
                         {
-                            CryptoAccountId = account.Id,
+                            InvestmentAccountId = account.Id,
                             UserId = id,
-                            CryptoId = dto.ShareorCryptoId,
+                            ShareCertificateId = dto.ShareorCryptoId,
                             Amount = dto.Amount,
                             ValueChange = 0,
                             CurrentValue = value,
@@ -62,13 +65,14 @@ namespace h2dYatirim.Application.Classes
                         portfolioTotalValue += item.CurrentValue;
                     }
                     account.AmountInAccount -= value;
-                    account.WalletValue = portfolioTotalValue;
-                    _cryptoAccountDal.Update(account);
+                    investmentAccount.PortfolioValue = portfolioTotalValue;
+                    _investmentAccountDal.Update(investmentAccount);
+                    _accountDal.Update(account);
                     AccountMovement movement = new AccountMovement()
                     {
                         UserId = id,
-                        CryptoAccountId = account.Id,
-                        CryptoId = dto.ShareorCryptoId,
+                        AccountId = account.Id,
+                        AssetId = dto.ShareorCryptoId,
                         Value = value,
                         TransactionType = "Alış"
                     };
@@ -85,15 +89,14 @@ namespace h2dYatirim.Application.Classes
                 return new ErrorDataResult<bool>(false);
             }
         }
-
-        public IDataResult<List<Portfolio>> GetPortfolio(Guid id)
+        public decimal Value(Guid id)
         {
             decimal totalPortfolioValue = 0;
             var result = _portfolioDal.GetAll(u => u.UserId == id);
             foreach (var item in result)
             {
-                var crypto = CoinService.ServiceGetAsync(item.CryptoId);
-                item.CurrentValue = Convert.ToDecimal(item.Amount) * Convert.ToDecimal(crypto.Result.PriceUsd);
+                var share = ShareService.ServiceGetAsync(item.ShareCertificateId);
+                item.CurrentValue = Convert.ToDecimal(item.Amount) * Convert.ToDecimal(share.Result.Price);
 
                 decimal received = item.ReceivedValue;
                 decimal current = item.CurrentValue;
@@ -105,9 +108,33 @@ namespace h2dYatirim.Application.Classes
 
                 _portfolioDal.Update(item);
             }
-            var account = _cryptoAccountDal.Get(u => u.UserId == id);
-            account.WalletValue = totalPortfolioValue;
-            _cryptoAccountDal.Update(account);
+            var account = _investmentAccountDal.Get(u => u.UserId == id);
+            account.PortfolioValue = totalPortfolioValue;
+            _investmentAccountDal.Update(account);
+            return totalPortfolioValue;
+        }
+        public IDataResult<List<Portfolio>> GetPortfolio(Guid id)
+        {
+            decimal totalPortfolioValue = 0;
+            var result = _portfolioDal.GetAll(u => u.UserId == id);
+            foreach (var item in result)
+            {
+                var share = ShareService.ServiceGetAsync(item.ShareCertificateId);
+                item.CurrentValue = Convert.ToDecimal(item.Amount) * Convert.ToDecimal(share.Result.Price);
+
+                decimal received = item.ReceivedValue;
+                decimal current = item.CurrentValue;
+                decimal fark = current - received;
+                decimal yuzdeFark = (fark / received) * 100;
+                item.ValueChange = yuzdeFark;
+
+                totalPortfolioValue += item.CurrentValue;
+
+                _portfolioDal.Update(item);
+            }
+            var account = _investmentAccountDal.Get(u => u.UserId == id);
+            account.PortfolioValue = totalPortfolioValue;
+            _investmentAccountDal.Update(account);
             var portfolios = _portfolioDal.GetAll(u => u.UserId == id);
             return new SuccessDataResult<List<Portfolio>>(portfolios);
         }
@@ -119,24 +146,24 @@ namespace h2dYatirim.Application.Classes
 
         public IDataResult<bool> Selling(Guid id, BuyingSellingDTO dto)
         {
-            var portfolio = _portfolioDal.Get(u => u.UserId == id && u.CryptoId == dto.ShareorCryptoId);
-            var account = _cryptoAccountDal.Get(u => u.UserId == id);
-            var crypto = CoinService.ServiceGetAsync(dto.ShareorCryptoId);
-            decimal coinPrice = Convert.ToDecimal(crypto.Result.PriceUsd);
+            var portfolio = _portfolioDal.Get(u => u.UserId == id && u.ShareCertificateId == dto.ShareorCryptoId);
+            var account = _accountDal.Get(u => u.UserId == id);
+            var investmentAccount = _investmentAccountDal.Get(u => u.UserId == id);
+            var share = ShareService.ServiceGetAsync(dto.ShareorCryptoId);
             if (account != null)
             {
                 if (portfolio != null)
                 {
                     if (portfolio.Amount >= dto.Amount)
                     {
-                        decimal value = Convert.ToDecimal(dto.Amount) * coinPrice;
-                        account.WalletValue -= value;
+                        decimal value = Convert.ToDecimal(dto.Amount) * share.Result.Price;
+                        investmentAccount.PortfolioValue -= value;
                         account.AmountInAccount += value;
                         var movement = new AccountMovement()
                         {
                             UserId = id,
-                            CryptoAccountId = account.Id,
-                            CryptoId = dto.ShareorCryptoId,
+                            AccountId = account.Id,
+                            AssetId = dto.ShareorCryptoId,
                             TransactionType = "Satış",
                             Value = value
                         };
@@ -152,7 +179,8 @@ namespace h2dYatirim.Application.Classes
                         {
                             _portfolioDal.Delete(portfolio);
                         }
-                        _cryptoAccountDal.Update(account);
+                        _investmentAccountDal.Update(investmentAccount);
+                        _accountDal.Update(account);
                         _accountMovementDal.Add(movement);
                         return new SuccessDataResult<bool>(true);
                     }

@@ -13,7 +13,7 @@ namespace h2dYatirim.Infrastructure.Services
 {
     public class ShareService
     {
-        public static async Task<List<ShareCertificate>> GetStockDataAsync()
+        public static async Task<List<ShareCertificate>> GetShareCertificateAsync()
         {
             List<ShareCertificate> result = new List<ShareCertificate>();
 
@@ -47,6 +47,16 @@ namespace h2dYatirim.Infrastructure.Services
                     return result;
                 }
             }
+        }
+
+        public static async Task<ShareCertificate> ServiceGetAsync(string id)
+        {
+            List<ShareCertificate> share = await GetShareCertificateAsync();
+            ShareCertificate result = share.Find(item => item.Name == id);
+
+            var foundItem = share.Find(item => item.Name == id);
+
+            return result;
         }
     }
 }

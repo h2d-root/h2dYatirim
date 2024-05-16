@@ -12,7 +12,7 @@ using h2dYatırım.DataAccess;
 namespace h2dYatirim.Infrastructure.Migrations
 {
     [DbContext(typeof(h2dYatirimDBContext))]
-    [Migration("20240514123303_mig1")]
+    [Migration("20240516120827_mig1")]
     partial class mig1
     {
         /// <inheritdoc />
@@ -25,7 +25,7 @@ namespace h2dYatirim.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("h2dYatirim.Domain.Entity.InvestmentAccount", b =>
+            modelBuilder.Entity("h2dYatirim.Domain.Entity.Account", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -34,13 +34,36 @@ namespace h2dYatirim.Infrastructure.Migrations
                     b.Property<decimal>("AmountInAccount")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal>("ProtfolioValue")
+                    b.Property<decimal>("AssetValue")
                         .HasColumnType("numeric");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.ToTable("Accounts");
+                });
+
+            modelBuilder.Entity("h2dYatirim.Domain.Entity.InvestmentAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("PortfolioValue")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique();
 
                     b.ToTable("InvestmentAccounts");
                 });
@@ -51,10 +74,10 @@ namespace h2dYatirim.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CryptoAccountId")
+                    b.Property<Guid>("AccountId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("CryptoId")
+                    b.Property<string>("AssetId")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -79,8 +102,8 @@ namespace h2dYatirim.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("AmountInAccount")
-                        .HasColumnType("numeric");
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -89,6 +112,9 @@ namespace h2dYatirim.Infrastructure.Migrations
                         .HasColumnType("numeric");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique();
 
                     b.ToTable("CryptoAccounts");
                 });
@@ -102,18 +128,18 @@ namespace h2dYatirim.Infrastructure.Migrations
                     b.Property<double>("Amount")
                         .HasColumnType("double precision");
 
-                    b.Property<Guid>("CryptoAccountId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CryptoId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<decimal>("CurrentValue")
                         .HasColumnType("numeric");
 
+                    b.Property<Guid>("InvestmentAccountId")
+                        .HasColumnType("uuid");
+
                     b.Property<decimal>("ReceivedValue")
                         .HasColumnType("numeric");
+
+                    b.Property<string>("ShareCertificateId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -192,6 +218,31 @@ namespace h2dYatirim.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Wallets");
+                });
+
+            modelBuilder.Entity("h2dYatirim.Domain.Entity.InvestmentAccount", b =>
+                {
+                    b.HasOne("h2dYatirim.Domain.Entity.Account", null)
+                        .WithOne("InvestmentAccount")
+                        .HasForeignKey("h2dYatirim.Domain.Entity.InvestmentAccount", "AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("h2dYatırım.Entities.CryptoAccount", b =>
+                {
+                    b.HasOne("h2dYatirim.Domain.Entity.Account", null)
+                        .WithOne("CryptoAccount")
+                        .HasForeignKey("h2dYatırım.Entities.CryptoAccount", "AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("h2dYatirim.Domain.Entity.Account", b =>
+                {
+                    b.Navigation("CryptoAccount");
+
+                    b.Navigation("InvestmentAccount");
                 });
 #pragma warning restore 612, 618
         }
