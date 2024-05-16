@@ -12,9 +12,9 @@ namespace h2dYatirim.Domain.Entity
     {
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
+        public Guid? CryptoAccountId { get; set; }
+        public Guid? InvestmentAccountId { get; set; }
         public decimal AmountInAccount { get; set; }
         public decimal AssetValue { get; set; }
-        public CryptoAccount? CryptoAccount { get; set; }
-        public InvestmentAccount? InvestmentAccount { get; set; }
     }
 }

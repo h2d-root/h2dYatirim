@@ -34,6 +34,12 @@ namespace h2dYatirim.Infrastructure.Migrations
                     b.Property<decimal>("AssetValue")
                         .HasColumnType("numeric");
 
+                    b.Property<Guid?>("CryptoAccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("InvestmentAccountId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
@@ -58,9 +64,6 @@ namespace h2dYatirim.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AccountId")
-                        .IsUnique();
 
                     b.ToTable("InvestmentAccounts");
                 });
@@ -109,9 +112,6 @@ namespace h2dYatirim.Infrastructure.Migrations
                         .HasColumnType("numeric");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AccountId")
-                        .IsUnique();
 
                     b.ToTable("CryptoAccounts");
                 });
@@ -215,31 +215,6 @@ namespace h2dYatirim.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Wallets");
-                });
-
-            modelBuilder.Entity("h2dYatirim.Domain.Entity.InvestmentAccount", b =>
-                {
-                    b.HasOne("h2dYatirim.Domain.Entity.Account", null)
-                        .WithOne("InvestmentAccount")
-                        .HasForeignKey("h2dYatirim.Domain.Entity.InvestmentAccount", "AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("h2dYatırım.Entities.CryptoAccount", b =>
-                {
-                    b.HasOne("h2dYatirim.Domain.Entity.Account", null)
-                        .WithOne("CryptoAccount")
-                        .HasForeignKey("h2dYatırım.Entities.CryptoAccount", "AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("h2dYatirim.Domain.Entity.Account", b =>
-                {
-                    b.Navigation("CryptoAccount");
-
-                    b.Navigation("InvestmentAccount");
                 });
 #pragma warning restore 612, 618
         }
